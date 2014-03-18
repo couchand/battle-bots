@@ -5,7 +5,7 @@ ROUNDS_PER_BOUT = 1000
 DISPLAY_BOUTS = yes
 
 directions = require './shared/directions'
-{move, legal, randInt} = require './shared/helpers'
+{move, legal, areCoincident, areNeighbors, randInt} = require './shared/helpers'
 
 count = 0
 
@@ -78,9 +78,10 @@ class Board
       throw new Error "unknown bot:", bot
   move_bot: (bot, dir) ->
     attempt = move bot, dir
-    if legal attempt
-      bot.row = attempt.row
-      bot.col = attempt.col
+    return unless legal attempt
+    return if areCoincident(attempt, @bot1) or areCoincident(attempt, @bot2)
+    bot.row = attempt.row
+    bot.col = attempt.col
 
 class RoundRobin
   constructor: (handlers) ->
@@ -130,16 +131,16 @@ class Bout
   update_landmines: ->
     exploded = []
     for mine in @board.mines
-      if mine.row is @bot1.row and mine.col is @bot1.col
+      if areCoincident mine, @bot1
         console.log "exploding mine at", mine.row, mine.col
         exploded.push mine
         @bot1.health -= 2
-        if Math.abs(mine.row - @bot2.row) + Math.abs(mine.col - @bot2.col)
+        if areNeighbors mine, @bot2
           @bot2.health -= 1
-      if mine.row is @bot2.row and mine.col is @bot2.col
+      if areCoincident mine, @bot2
         exploded.push mine
         @bot2.health -= 2
-        if Math.abs(mine.row - @bot1.row) + Math.abs(mine.col - @bot1.col)
+        if areNeighbors mine, @bot1
           @bot1.health -= 1
     @board.mines = @board.mines.filter (m) -> m not in exploded
 
@@ -148,23 +149,23 @@ class Bout
     for projectile in @board.projectiles
       for j in [0...if projectile.type is 'B' then 3 else 2]
         path = move projectile, projectile.dir
-        if path.row is @bot1.row and path.col is @bot1.col
+        if areCoincident path, @bot1
           console.log "colliding #{projectile.type} at", path.row, path.col
           collided.push projectile
           if projectile.type is 'B'
             @bot1.health -= 1
           else
             @bot1.health -= 3
-            if Math.abs(path.row - @bot2.row) + Math.abs(path.col - @bot2.col)
+            if areNeighbors path, @bot2
               @bot2.health -= 1
-        if path.row is @bot2.row and path.col is @bot2.col
+        if areCoincident path, @bot2
           console.log "colliding #{projectile.type} at", path.row, path.col
           collided.push projectile
           if projectile.type is 'B'
             @bot2.health -= 1
           else
             @bot2.health -= 3
-            if Math.abs(path.row - @bot1.row) + Math.abs(path.col - @bot1.col)
+            if areNeighbors path, @bot1
               @bot1.health -= 1
         projectile.row = path.row
         projectile.col = path.col

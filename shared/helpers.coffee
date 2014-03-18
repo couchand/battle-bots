@@ -33,6 +33,12 @@ randOf = (choices) ->
   i = randInt choices.length
   choices[i]
 
+areCoincident = (a, b) ->
+  a.row is b.row and a.col is b.col
+
+areNeighbors = (a, b) ->
+  Math.abs(a.row - b.row) < 2 and Math.abs(a.col - b.col) < 2
+
 move = (me, dir) ->
   row = me.row
   col = me.col
@@ -123,4 +129,4 @@ distance = (a, b) ->
   dy = a.row - b.row
   Math.sqrt dx*dx + dy*dy
 
-module.exports = {direction, distance, move, clamp, randInt, randOf, what, whatNext, legal, danger, warning}
+module.exports = {direction, distance, areCoincident, areNeighbors, move, clamp, randInt, randOf, what, whatNext, legal, danger, warning}
