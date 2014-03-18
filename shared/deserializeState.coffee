@@ -35,6 +35,7 @@ module.exports = deserializeState = (state) ->
         col: +parts[0]
     else
       board.projectiles.push
+        type: weapon[0]
         row: +parts[1]
         col: +parts[0]
         dir: parts[2]

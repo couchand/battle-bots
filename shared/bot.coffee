@@ -16,7 +16,6 @@ module.exports = bot = (handle) ->
   log state
 
   board = deserializeState state
-  log JSON.stringify board, null, 2
 
   move = handle board
   log move
